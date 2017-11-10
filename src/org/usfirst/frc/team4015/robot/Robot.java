@@ -1,116 +1,145 @@
-
 package org.usfirst.frc.team4015.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import org.usfirst.frc.team4015.robot.commands.ExampleCommand;
-import org.usfirst.frc.team4015.robot.subsystems.ExampleSubsystem;
+// SUBSYSTEM IMPORTS //
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- */
-public class Robot extends IterativeRobot {
+import org.usfirst.frc.team4015.robot.subsystems.Drivetrain;
+import org.usfirst.frc.team4015.robot.subsystems.Pneumatics;
+import org.usfirst.frc.team4015.robot.subsystems.Winch;
 
-	public static final ExampleSubsystem exampleSubsystem = new ExampleSubsystem();
-	public static OI oi;
+// ROBOT MODES (COMMAND GROUP) IMPORTS //
 
-	Command autonomousCommand;
-	SendableChooser<Command> chooser = new SendableChooser<>();
+import org.usfirst.frc.team4015.robot.robotModes.Teleop;
+import org.usfirst.frc.team4015.robot.robotModes.Auto;
 
-	/**
-	 * This function is run when the robot is first started up and should be
-	 * used for any initialization code.
-	 */
+/* =============================================================================
+ * The RoboRIO will automatically run the methods in this class depending on
+ * which part of the match is being played.
+ * ============================================================================*/
+
+public class Robot extends IterativeRobot
+{
+	// SUBSYSTEM DECLARATION //
+	
+	public static Drivetrain drivetrain;
+	public static Pneumatics pneumatics;
+	public static Winch winch;
+	
+	// DECLARE ROBOT MODES (COMMAND GROUPS) //
+	
+	Command teleop;
+	Command auto;
+	
+	/* ===================================
+	 * This function is run when the robot 
+	 * is first started up.
+	 * ==================================*/
+	
 	@Override
-	public void robotInit() {
-		oi = new OI();
-		chooser.addDefault("Default Auto", new ExampleCommand());
-		// chooser.addObject("My Auto", new MyAutoCommand());
-		SmartDashboard.putData("Auto mode", chooser);
+	public void robotInit()
+	{
+		// SUBSYSTEM INSTANTIATION //
+		
+		drivetrain = new Drivetrain();
+		pneumatics = new Pneumatics();
+		winch = new Winch();
+		
+		// INSTANTIATE ROBOT MODES (COMMAND GROUPS) //
+		
+		teleop = new Teleop();
+		auto = new Auto();
 	}
 
-	/**
-	 * This function is called once each time the robot enters Disabled mode.
-	 * You can use it to reset any subsystem information you want to clear when
-	 * the robot is disabled.
-	 */
+	/* =================================================
+	 * This function is called once each time the robot 
+	 * enters Disabled mode. You can use it to reset any 
+	 * subsystem information you want to clear when the 
+	 * robot is disabled.
+	 * ================================================*/
+	
 	@Override
-	public void disabledInit() {
+	public void disabledInit()
+	{
 
 	}
 
 	@Override
-	public void disabledPeriodic() {
+	public void disabledPeriodic()
+	{
+		// Run Scheduler to manage Commands / CommandGroups
 		Scheduler.getInstance().run();
 	}
 
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString code to get the auto name from the text box below the Gyro
-	 *
-	 * You can add additional auto modes by adding additional commands to the
-	 * chooser code above (like the commented example) or additional comparisons
-	 * to the switch structure below with additional strings & commands.
-	 */
+	/* ===============================================================
+	 * This method is called at the beginning of the autonomous period
+	 * ==============================================================*/
+	
 	@Override
-	public void autonomousInit() {
-		autonomousCommand = chooser.getSelected();
-
-		/*
-		 * String autoSelected = SmartDashboard.getString("Auto Selector",
-		 * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
-		 * = new MyAutoCommand(); break; case "Default Auto": default:
-		 * autonomousCommand = new ExampleCommand(); break; }
-		 */
-
-		// schedule the autonomous command (example)
-		if (autonomousCommand != null)
-			autonomousCommand.start();
+	public void autonomousInit()
+	{
+		// START AUTONOMOUS COMMAND GROUP //
+		
+		if (auto != null)
+		{
+			auto.start();
+		}
 	}
 
-	/**
+	/* ======================================================
 	 * This function is called periodically during autonomous
-	 */
+	 * =====================================================*/
+	
 	@Override
-	public void autonomousPeriodic() {
+	public void autonomousPeriodic()
+	{
+		// Run Scheduler to manage Commands / CommandGroups
+		Scheduler.getInstance().run();
+	}
+	
+	/* ================================================
+	 * This method is called at the beginning of teleop
+	 * ==============================================*/
+
+	@Override
+	public void teleopInit()
+	{	
+		// STOP AUTONOMOUS COMMAND GROUP //
+		
+		if (auto != null)
+		{
+			auto.cancel();
+		}
+		
+		// START TELEOP COMMAND GROUP //
+		
+		if (teleop != null)
+		{
+			teleop.start();
+		}
+	}
+
+	/* ===================================================
+	 * This function is called periodically during teleop
+	 * ==================================================*/
+	
+	@Override
+	public void teleopPeriodic()
+	{
+		// Run Scheduler to manage Commands / CommandGroups
 		Scheduler.getInstance().run();
 	}
 
-	@Override
-	public void teleopInit() {
-		// This makes sure that the autonomous stops running when
-		// teleop starts running. If you want the autonomous to
-		// continue until interrupted by another command, remove
-		// this line or comment it out.
-		if (autonomousCommand != null)
-			autonomousCommand.cancel();
-	}
-
-	/**
-	 * This function is called periodically during operator control
-	 */
-	@Override
-	public void teleopPeriodic() {
-		Scheduler.getInstance().run();
-	}
-
-	/**
+	/* =====================================================
 	 * This function is called periodically during test mode
-	 */
+	 * ====================================================*/
+	
 	@Override
-	public void testPeriodic() {
+	public void testPeriodic()
+	{
 		LiveWindow.run();
 	}
 }
